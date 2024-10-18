@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { MenuIcon } from "lucide-react";
 import Link from "next/link";
+import { NavMenu } from "./nav-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,6 +43,9 @@ const Navbar = ({
         </SheetContent>
       </Sheet>
       <h1 className="text-xl font-bold ml-2">Arkademi Chatbot</h1>
+      <div className="ml-4">
+        <NavMenu />
+      </div>
     </div>
     <div>
       {userEmail ? (
