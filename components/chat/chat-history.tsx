@@ -54,7 +54,7 @@ const ChatHistory: React.FC<Props> = ({ historyChat, activeSession }) => {
   };
 
   return (
-    <div>
+    <div className="max-w-[192px]">
       {Object.keys(categorizedChats).map(
         (category) =>
           categorizedChats[category].length > 0 && (

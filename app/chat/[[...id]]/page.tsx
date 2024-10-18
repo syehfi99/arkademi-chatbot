@@ -56,11 +56,14 @@ export default function ChatbotUI() {
   const handleSendMessage = async () => {
     if (audioBlob !== null) {
       const formData = new FormData();
-      formData.append("audio", audioBlob, "recording.webm");
-      const response = await fetch("http://127.0.0.1:5000/api/upload-audio", {
-        method: "POST",
-        body: formData,
-      });
+      formData.append("audio", audioBlob, `record_${user}.webm`);
+      const response = await fetch(
+        `https://9557-36-80-249-78.ngrok-free.app/api/upload-audio`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       const result = await response.json();
 
