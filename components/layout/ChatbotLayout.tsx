@@ -1,9 +1,12 @@
-"use client"
+"use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "../chat/navbar";
 import Sidebar from "../chat/sidebar";
 import { ChatbotLayoutProps } from "@/types/ChatLayoutProps";
+import SidebarResponsive from "../chat/sidebar-responsive";
+import { SidebarProvider } from "../ui/sidebar";
+import { AppSidebar } from "../app-sidebar";
 
 const ChatbotLayout: React.FC<ChatbotLayoutProps> = ({
   children,
@@ -24,20 +27,33 @@ const ChatbotLayout: React.FC<ChatbotLayoutProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-screen">
+    // <SidebarProvider>
+    //   <AppSidebar
+    //     historyChat={historyChat}
+    //     activeSession={activeSession}
+    //     handleNewSession={handleNewSession}
+    //   />
+
+    // </SidebarProvider>
+    <div className="flex flex-col h-screen w-full">
       <Navbar
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
         userEmail={userEmail}
         logout={logout}
         SidebarComponent={() => (
-          <Sidebar
-            handleNewSession={handleNewSession}
-            historyChat={historyChat}
-            activeSession={activeSession}
-          />
+          <>
+            <SidebarResponsive
+              handleNewSession={handleNewSession}
+              historyChat={historyChat}
+              activeSession={activeSession}
+              userEmail={userEmail}
+              logout={logout}
+            />
+          </>
         )}
       />
+
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
           handleNewSession={handleNewSession}

@@ -16,8 +16,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Arkademi Chatbot",
-  description: "Arkademi Chatbot - Testing",
+  title: "Arkademi Intelligence",
+  description: "Arkademi Intelligence - Testing",
 };
 
 export default function RootLayout({

@@ -53,7 +53,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">
-            Login to Arkademi Chatbot
+            Login to Arkademi Intelligence
           </CardTitle>
           <CardDescription>
             Enter your email and password to access the chatbot

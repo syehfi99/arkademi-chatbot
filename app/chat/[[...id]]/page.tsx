@@ -12,6 +12,8 @@ import { v4 as uuidv4 } from "uuid";
 import ReactMarkdown from "react-markdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AudioRecorder from "@/components/chat/audio-recorder";
+import { Textarea } from "@/components/ui/textarea";
+import TextInputChat from "@/components/ui/text-input-chat";
 
 export default function ChatbotUI() {
   const [secondSegment, setSecondSegment] = useState("");
@@ -144,6 +146,22 @@ export default function ChatbotUI() {
     }
   }, [historyChat]);
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "36px";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [input]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
   return (
     <ChatbotLayout
       userEmail={userEmail}
@@ -182,7 +200,9 @@ export default function ChatbotUI() {
                   )}
                   <ReactMarkdown
                     className={`${
-                      message.role === "user" ? "" : "prose dark:prose-invert"
+                      message.role === "user"
+                        ? "whitespace-pre-wrap text-justify"
+                        : "prose dark:prose-invert"
                     }`}
                     children={message.content}
                   />
@@ -193,15 +213,25 @@ export default function ChatbotUI() {
         )}
         <div ref={dummy}></div>
       </ScrollArea>
-      <div className="flex items-center">
+      <TextInputChat
+        audioBlob={audioBlob}
+        audioUrl={audioUrl}
+        handleInputChange={handleInputChange}
+        handleSendMessage={handleSendMessage}
+        input={input}
+        setAudioBlob={setAudioBlob}
+        setAudioUrl={setAudioUrl}
+        isAudio
+      />
+      {/* <div className="flex md:flex-row flex-col items-end">
         {audioUrl == null ? (
-          <Input
-            type="text"
+          <Textarea
+            ref={textareaRef}
+            className="flex-1 mr-0 mb-2 md:mb-0 md:mr-2 min-h-[30px]"
             placeholder="Type your message..."
             value={input}
             onChange={handleInputChange}
-            onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-            className="flex-1 mr-2"
+            onKeyDown={handleKeyDown}
           />
         ) : (
           <>
@@ -213,18 +243,20 @@ export default function ChatbotUI() {
           </>
         )}
 
-        <div className="mx-2">
-          <AudioRecorder
-            onAudioRecorded={setAudioUrl}
-            blobAudio={setAudioBlob}
-            isBlob={audioBlob}
-          />
+        <div className="flex flex-col md:flex-row gap-2 w-full md:w-max">
+          <div className="w-full md:w-max">
+            <AudioRecorder
+              onAudioRecorded={setAudioUrl}
+              blobAudio={setAudioBlob}
+              isBlob={audioBlob}
+            />
+          </div>
+          <Button onClick={handleSendMessage} className="w-full md:w-max">
+            <SendIcon className="w-4 h-4 mr-2" />
+            Send
+          </Button>
         </div>
-        <Button onClick={handleSendMessage}>
-          <SendIcon className="w-4 h-4 mr-2" />
-          Send
-        </Button>
-      </div>
+      </div> */}
     </ChatbotLayout>
   );
 }

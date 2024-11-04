@@ -20,7 +20,7 @@ interface NavbarProps {
   setIsSidebarOpen: (open: boolean) => void;
   userEmail: string;
   logout: () => void;
-  SidebarComponent: React.FC;
+  SidebarComponent: any;
 }
 
 const Navbar = ({
@@ -42,12 +42,12 @@ const Navbar = ({
           <SidebarComponent />
         </SheetContent>
       </Sheet>
-      <h1 className="text-xl font-bold ml-2">Arkademi Chatbot</h1>
-      <div className="ml-4">
+      <h1 className="text-xl font-bold ml-2">Arkademi Intelligence</h1>
+      <div className="ml-4 hidden md:block">
         <NavMenu />
       </div>
     </div>
-    <div>
+    <div className="hidden md:block">
       {userEmail ? (
         <AlertDialog>
           <AlertDialogTrigger>{userEmail}</AlertDialogTrigger>

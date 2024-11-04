@@ -22,7 +22,7 @@ export default function Home() {
   return (
     <>
       <div className="flex flex-col justify-center items-center min-h-screen">
-        <h1>Arkademi Chatbot</h1>
+        <h1>Arkademi Intelligence</h1>
         {user !== "" ? (
           <Button asChild variant="outline">
             <Link href={`/chat`}>Start Chat</Link>

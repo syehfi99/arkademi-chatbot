@@ -48,7 +48,7 @@ export default function ResgiterPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">
-            Register to Arkademi Chatbot
+            Register to Arkademi Intelligence
           </CardTitle>
           <CardDescription>Register your account</CardDescription>
         </CardHeader>

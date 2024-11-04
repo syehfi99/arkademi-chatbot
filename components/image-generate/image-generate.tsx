@@ -1,14 +1,13 @@
 "use client";
 import { FC, useEffect, useRef, useState } from "react";
 import { ScrollArea } from "../ui/scroll-area";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { ArrowRight, SendIcon } from "lucide-react";
+import { ArrowRight, SendIcon, X } from "lucide-react";
 import ImageGenerationApi from "@/lib/imageGeneration";
 import Image from "next/image";
 import { Skeleton } from "../ui/skeleton";
 import { Card, CardContent } from "../ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import TextInputChat from "../ui/text-input-chat";
 
 const ImageGenerate: FC<IImageGenerate> = ({}) => {
   const [input, setInput] = useState("");
@@ -30,6 +29,24 @@ const ImageGenerate: FC<IImageGenerate> = ({}) => {
       setLoading(false);
     }
   };
+
+  const [loadingStates, setLoadingStates] = useState<boolean[]>(
+    Array(urlImage.length).fill(true)
+  );
+
+  useEffect(() => {
+    if (urlImage && urlImage.length) {
+      setLoadingStates(Array(urlImage.length).fill(true));
+    }
+  }, [urlImage]);
+
+  const handleImageLoad = (index: number) => {
+    setLoadingStates((prev) => {
+      const newLoadingStates = [...prev];
+      newLoadingStates[index] = false;
+      return newLoadingStates;
+    });
+  };
   return (
     <>
       <ScrollArea className="flex-1 mb-4 p-4 mx-auto w-full max-w-[48rem]">
@@ -47,8 +64,25 @@ const ImageGenerate: FC<IImageGenerate> = ({}) => {
               <>
                 <div className="grid grid-cols-2 gap-4">
                   {urlImage.length > 0 &&
-                    urlImage.map((data: any) => (
-                      <Image src={data.url} alt="" width={640} height={640} />
+                    urlImage.map((data: any, index: number) => (
+                      <div
+                        key={index}
+                        className="relative rounded-lg overflow-hidden"
+                      >
+                        {loadingStates[index] && (
+                          <Skeleton className="absolute inset-0 w-full h-full rounded-lg" />
+                        )}
+                        <Image
+                          src={data.url}
+                          alt=""
+                          width={640}
+                          height={640}
+                          onLoad={() => handleImageLoad(index)}
+                          className={`transition-opacity duration-500 rounded-lg ${
+                            loadingStates[index] ? "opacity-0" : "opacity-100"
+                          }`}
+                        />
+                      </div>
                     ))}
                 </div>
 
@@ -104,8 +138,13 @@ const ImageGenerate: FC<IImageGenerate> = ({}) => {
           </>
         )}
       </ScrollArea>
+      <TextInputChat
+        handleInputChange={(e: any) => setInput(e.target.value)}
+        handleSendMessage={handleSendMessage}
+        input={input}
+      />
 
-      <div className="flex items-center">
+      {/* <div className="flex items-center">
         <Input
           type="text"
           placeholder="Type your message..."
@@ -118,7 +157,7 @@ const ImageGenerate: FC<IImageGenerate> = ({}) => {
           <SendIcon className="w-4 h-4 mr-2" />
           Send
         </Button>
-      </div>
+      </div> */}
     </>
   );
 };

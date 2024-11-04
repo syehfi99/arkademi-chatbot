@@ -1,8 +1,21 @@
+import { db } from "@/lib/firebaseConf";
+import { deleteDoc, doc } from "firebase/firestore";
+import { Trash2 } from "lucide-react";
 import React, { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
 
 type HistoryItem = {
   sessionId: string;
-  createdAt: string;
+  createdAt: { seconds: number; nanoseconds: number };
   history: { content: string }[];
 };
 
@@ -18,7 +31,10 @@ const convertFirestoreTimestampToDate = (createdAt: {
   return new Date(createdAt.seconds * 1000 + createdAt.nanoseconds / 1000000);
 };
 
-const getDateCategory = (createdAt: any): string => {
+const getDateCategory = (createdAt: {
+  seconds: number;
+  nanoseconds: number;
+}): string => {
   const today = new Date();
   const createdDate = convertFirestoreTimestampToDate(createdAt);
 
@@ -34,6 +50,8 @@ const getDateCategory = (createdAt: any): string => {
 
 const ChatHistory: React.FC<Props> = ({ historyChat, activeSession }) => {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
 
   const categorizedChats: { [key: string]: HistoryItem[] } = {
     Today: [],
@@ -53,8 +71,21 @@ const ChatHistory: React.FC<Props> = ({ historyChat, activeSession }) => {
     activeSession(sessionId);
   };
 
+  const handleDelete = async () => {
+    if (deleteSessionId) {
+      try {
+        await deleteDoc(doc(db, "chats", deleteSessionId));
+        setDeleteSessionId(null); // Reset after deletion
+        setIsOpen(false);
+        // Add any additional logic to update the UI
+      } catch (error) {
+        console.error("Error deleting document:", error);
+      }
+    }
+  };
+
   return (
-    <div className="max-w-[192px]">
+    <div className="max-w-[220px]">
       {Object.keys(categorizedChats).map(
         (category) =>
           categorizedChats[category].length > 0 && (
@@ -64,20 +95,63 @@ const ChatHistory: React.FC<Props> = ({ historyChat, activeSession }) => {
                 {categorizedChats[category].map((data, index) => (
                   <li
                     key={index}
-                    className={`cursor-pointer  p-2 rounded-xl truncate text-sm ${
+                    className={`group relative flex items-center justify-between cursor-pointer p-2 rounded-xl truncate text-sm ${
                       activeSessionId === data.sessionId
                         ? "bg-slate-700"
                         : "hover:bg-slate-500 hover:bg-opacity-30"
                     }`}
                     onClick={() => handleSessionClick(data.sessionId)}
                   >
-                    {data.history[0].content}
+                    <span className="truncate">{data.history[0].content}</span>
+                    <span
+                      className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteSessionId(data.sessionId); // Set the session ID to delete
+                        setIsOpen(true); // Open the alert dialog
+                      }}
+                    >
+                      <Trash2 className="text-gray-400 hover:text-red-600 cursor-pointer ml-2" />
+                    </span>
                   </li>
                 ))}
               </ul>
             </div>
           )
       )}
+
+      <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete chat?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will delete{" "}
+              <b>
+                {
+                  historyChat.find((item) => item.sessionId === deleteSessionId)
+                    ?.history[0].content
+                }
+              </b>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setDeleteSessionId(null);
+                setIsOpen(false);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

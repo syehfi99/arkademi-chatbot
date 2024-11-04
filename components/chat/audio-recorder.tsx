@@ -7,13 +7,13 @@ import { Mic, Square, Trash } from "lucide-react";
 interface AudioRecorderProps {
   onAudioRecorded: (url: string | null) => void;
   blobAudio: (blob: Blob | null) => void;
-  isBlob: Blob | null
+  isBlob: Blob | null | undefined;
 }
 
 const AudioRecorder: React.FC<AudioRecorderProps> = ({
   onAudioRecorded,
   blobAudio,
-  isBlob
+  isBlob,
 }) => {
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -60,21 +60,27 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
   };
 
   const deleteAudio = () => {
-    onAudioRecorded(null)
-    blobAudio(null)
+    onAudioRecorded(null);
+    blobAudio(null);
   };
 
   return (
     <>
-      <div className="flex space-x-4">
+      <div className="w-full md:w-max">
         {isBlob ? (
-          <Button className="bg-red-500 hover:bg-red-600" onClick={deleteAudio}>
+          <Button
+            className="bg-red-500 hover:bg-red-600 w-full md:w-max"
+            onClick={deleteAudio}
+            asChild
+          >
             <Trash className="h-4 w-4" />
           </Button>
         ) : (
           <Button
             onClick={isRecording ? stopRecording : startRecording}
-            className={isRecording ? "bg-red-500 hover:bg-red-600" : ""}
+            className={`w-full md:w-max ${
+              isRecording ? "bg-red-500 hover:bg-red-600" : ""
+            }`}
           >
             {isRecording ? (
               <>

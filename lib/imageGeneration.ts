@@ -1,9 +1,9 @@
 import OpenAI from "openai";
 
-const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY
+const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 const openai = new OpenAI({
   apiKey: apiKey,
-  dangerouslyAllowBrowser: true
+  dangerouslyAllowBrowser: true,
 });
 
 async function ImageGenerationApi(prompt: string) {
@@ -15,7 +15,6 @@ async function ImageGenerationApi(prompt: string) {
     prompt: prompt,
     n: 4,
   });
-  console.log("image.data", image.data);
 
   return image.data;
 }
