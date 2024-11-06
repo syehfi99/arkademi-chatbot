@@ -1,19 +1,16 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useChat } from "ai/react";
-import { SendIcon } from "lucide-react";
+import { File } from "lucide-react";
 import MultimodelText from "@/components/chat/multimodel-text";
 import { useChatFunctions, useChatHistory } from "@/hooks/useChatFunctions";
 import ChatbotLayout from "@/components/layout/ChatbotLayout";
 import { v4 as uuidv4 } from "uuid";
 import ReactMarkdown from "react-markdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import AudioRecorder from "@/components/chat/audio-recorder";
-import { Textarea } from "@/components/ui/textarea";
 import TextInputChat from "@/components/ui/text-input-chat";
+import Image from "next/image";
 
 export default function ChatbotUI() {
   const [secondSegment, setSecondSegment] = useState("");
@@ -42,6 +39,9 @@ export default function ChatbotUI() {
   );
   const dummy = useRef<any>(null);
 
+  const [files, setFiles] = useState<FileList | undefined>(undefined);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     dummy?.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -55,7 +55,9 @@ export default function ChatbotUI() {
     }
   }, []);
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = async (e: any) => {
+    if (files) {
+    }
     if (audioBlob !== null) {
       const formData = new FormData();
       formData.append("audio", audioBlob, `record_${user}.webm`);
@@ -112,10 +114,10 @@ export default function ChatbotUI() {
             const segments = window.location.pathname.split("/");
             if (segments.length > 2) {
               setSecondSegment(segments[2]);
-              handleSubmit();
+              handleSubmit(e, files ? { experimental_attachments: files } : {});
             }
           } else if (secondSegment !== "") {
-            handleSubmit();
+            handleSubmit(e, files ? { experimental_attachments: files } : {});
           }
         }
       }
@@ -155,13 +157,6 @@ export default function ChatbotUI() {
     }
   }, [input]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
   return (
     <ChatbotLayout
       userEmail={userEmail}
@@ -191,7 +186,11 @@ export default function ChatbotUI() {
                     : "text-gray-800"
                 }`}
               >
-                <div className="flex items-start">
+                <div
+                  className={`flex items-start ${
+                    message?.experimental_attachments ? "flex-col gap-2" : ""
+                  }`}
+                >
                   {message.role !== "user" && (
                     <Avatar className="mr-4">
                       <AvatarImage src="https://github.com/shadcn.png" />
@@ -206,6 +205,34 @@ export default function ChatbotUI() {
                     }`}
                     children={message.content}
                   />
+                  <div>
+                    {message?.experimental_attachments
+                      ?.filter((attachment) =>
+                        attachment?.contentType?.startsWith("image/")
+                      )
+                      .map((attachment, index) => (
+                        <Image
+                          key={`${message.id}-${index}`}
+                          src={attachment.url}
+                          width={350}
+                          height={350}
+                          alt={attachment.name ?? `attachment-${index}`}
+                        />
+                      ))}
+                  </div>
+                  <div>
+                    {message?.experimental_attachments
+                      ?.filter(
+                        (attachment) =>
+                          !attachment?.contentType?.startsWith("image/")
+                      )
+                      .map((attachment, index) => (
+                        <div className="flex items-center gap-1 w-max p-2 rounded-lg">
+                          <File key={index} />
+                          <p key={index}>{attachment.name}</p>
+                        </div>
+                      ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -213,15 +240,41 @@ export default function ChatbotUI() {
         )}
         <div ref={dummy}></div>
       </ScrollArea>
+      <div>
+        {files ? (
+          Array.from(files).map((file, index) => (
+            <div key={index} style={{ marginBottom: "10px" }}>
+              {file.type.startsWith("image/") ? (
+                <Image
+                  key={`${index}`}
+                  src={URL.createObjectURL(file)}
+                  width={250}
+                  height={250}
+                  alt={file.name ?? `attachment-${index}`}
+                />
+              ) : (
+                <div className="flex items-center gap-1 border-2 w-max p-2 rounded-lg">
+                  <File />
+                  <p>{file.name}</p>
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <></>
+        )}
+      </div>
       <TextInputChat
         audioBlob={audioBlob}
         audioUrl={audioUrl}
         handleInputChange={handleInputChange}
-        handleSendMessage={handleSendMessage}
+        handleSendMessage={(e: any) => handleSendMessage(e)}
         input={input}
         setAudioBlob={setAudioBlob}
         setAudioUrl={setAudioUrl}
         isAudio
+        fileInputRef={fileInputRef}
+        setFiles={setFiles}
       />
       {/* <div className="flex md:flex-row flex-col items-end">
         {audioUrl == null ? (

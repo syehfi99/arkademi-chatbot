@@ -1,8 +1,9 @@
-import { FC, useEffect, useRef } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { Textarea } from "./textarea";
 import AudioRecorder from "../chat/audio-recorder";
 import { Button } from "./button";
-import { SendIcon } from "lucide-react";
+import { PaperclipIcon, SendIcon } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const TextInputChat: FC<ITextInputChat> = ({
   input,
@@ -13,8 +14,11 @@ const TextInputChat: FC<ITextInputChat> = ({
   setAudioUrl,
   setAudioBlob,
   isAudio = false,
+  fileInputRef,
+  setFiles,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -26,12 +30,65 @@ const TextInputChat: FC<ITextInputChat> = ({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      handleSendMessage(e);
+      setFiles(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleFileChange = (e: any) => {
+    const selectedFiles = e.target.files;
+    const maxFileSize = 1 * 1024 * 1024;
+
+    if (selectedFiles) {
+      // Filter files that are less than or equal to 1 MB
+      const validFiles = Array.from(selectedFiles).filter(
+        (file: any) => file.size <= maxFileSize
+      );
+
+      // Update state if there are valid files
+      if (validFiles.length > 0) {
+        setFiles(new DataTransfer().files); // Creating a new empty FileList
+
+        const dataTransfer = new DataTransfer();
+        validFiles.forEach((file: any) => dataTransfer.items.add(file)); // Add valid files to DataTransfer
+        setFiles(dataTransfer.files);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Uh oh! Something went wrong.",
+          description: "Each file must be 1 MB or smaller.",
+        });
+        setFiles(undefined);
+      }
     }
   };
   return (
     <>
       <div className="flex md:flex-row flex-col items-end">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="shrink-0 mr-2"
+          onClick={() => {
+            document.getElementById("file-upload")?.click();
+          }}
+        >
+          <PaperclipIcon className="w-5 h-5" />
+          <span className="sr-only">Attach file</span>
+        </Button>
+        <input
+          type="file"
+          id="file-upload"
+          className="hidden"
+          onChange={(e) => {
+            handleFileChange(e);
+          }}
+          multiple
+          ref={fileInputRef}
+        />
         {audioUrl == null ? (
           <Textarea
             ref={textareaRef}
@@ -61,7 +118,16 @@ const TextInputChat: FC<ITextInputChat> = ({
               />
             </div>
           )}
-          <Button onClick={handleSendMessage} className="w-full md:w-max">
+          <Button
+            onClick={(e) => {
+              handleSendMessage(e);
+              setFiles(null);
+              if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+              }
+            }}
+            className="w-full md:w-max"
+          >
             <SendIcon className="w-4 h-4 mr-2" />
             Send
           </Button>
@@ -80,6 +146,8 @@ interface ITextInputChat {
   audioBlob?: Blob | null | undefined;
   setAudioBlob?: any;
   isAudio?: boolean;
+  setFiles?: any;
+  fileInputRef?: any;
 }
 
 export default TextInputChat;
