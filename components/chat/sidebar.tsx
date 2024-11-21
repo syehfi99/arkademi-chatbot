@@ -21,7 +21,7 @@ const Sidebar = ({
   const router = useRouter();
 
   return (
-    <div className="w-64 p-4 bg-gray-100 dark:bg-black hidden md:flex flex-col justify-between h-full">
+    <div className="w-64 p-4 bg-gray-100 dark:bg-black hidden md:flex flex-col">
       <div>
         <Button variant="ghost" className="w-full" onClick={handleNewSession}>
           <SquarePen className="mr-2" /> Start new chat
@@ -30,7 +30,7 @@ const Sidebar = ({
         {historyChat.length == 0 ? (
           <p className="text-center text-sm text-gray-500">No Chat History</p>
         ) : (
-          <ScrollArea className="h-full rounded-md">
+          <ScrollArea className="h-[700px] rounded-md">
             <ChatHistory
               historyChat={historyChat}
               activeSession={activeSession}
