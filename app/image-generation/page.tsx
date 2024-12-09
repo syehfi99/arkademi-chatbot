@@ -8,8 +8,8 @@ export default function ImageGenerate() {
   const [user, setUser] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const { historyChat } = useChatHistory(user);
-  const [messages, setMessages] = useState([]); // State for messages if needed
-  const [model, setModel] = useState("gpt-4o"); // Default model
+  const [messages, setMessages] = useState([]);
+  const [model, setModel] = useState("gpt-4o");
 
   const { handleNewSession, activeSession } = useChatFunctions(
     setMessages,

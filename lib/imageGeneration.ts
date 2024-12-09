@@ -1,10 +1,8 @@
+"use server";
+
 import OpenAI from "openai";
 
-const apiKey = process.env.OPENAI_API_KEY;
-const openai = new OpenAI({
-  apiKey: apiKey,
-  dangerouslyAllowBrowser: true,
-});
+const openai = new OpenAI();
 
 async function ImageGenerationApi(prompt: string) {
   if (prompt == "") {

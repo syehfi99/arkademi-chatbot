@@ -56,8 +56,6 @@ export default function ChatbotUI() {
   }, []);
 
   const handleSendMessage = async (e: any) => {
-    if (files) {
-    }
     if (audioBlob !== null) {
       const formData = new FormData();
       formData.append("audio", audioBlob, `record_${user}.webm`);
@@ -112,12 +110,22 @@ export default function ChatbotUI() {
               newUrl
             );
             const segments = window.location.pathname.split("/");
+            
             if (segments.length > 2) {
               setSecondSegment(segments[2]);
               handleSubmit(e, files ? { experimental_attachments: files } : {});
+              setFiles(undefined);
+              if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+              }
             }
           } else if (secondSegment !== "") {
+            console.log('segments', secondSegment);
             handleSubmit(e, files ? { experimental_attachments: files } : {});
+            setFiles(undefined);
+            if (fileInputRef.current) {
+              fileInputRef.current.value = "";
+            }
           }
         }
       }
@@ -130,21 +138,27 @@ export default function ChatbotUI() {
       const currentSessionId = segments[2];
       setSecondSegment(currentSessionId);
 
-      if (currentSessionId) {
-        const sessionData = historyChat.find(
-          (chat) => chat.sessionId === currentSessionId
-        );
-
-        if (sessionData) {
-          setMessages(sessionData.history || []);
-          setModel(sessionData.model || "gpt-4o");
-        } else {
-          console.error(
-            "No chat session found for the sessionId:",
-            currentSessionId
+      const checkHistoryChat = setInterval(() => {
+        if (
+          historyChat &&
+          Array.isArray(historyChat) &&
+          historyChat.length > 0
+        ) {
+          clearInterval(checkHistoryChat);
+          const sessionData = historyChat.find(
+            (chat) => chat.sessionId === currentSessionId
           );
+
+          if (sessionData) {
+            setMessages(sessionData.history || []);
+            setModel(sessionData.model || "gpt-4o");
+          } else {
+            handleNewSession();
+          }
         }
-      }
+      }, 500);
+
+      return () => clearInterval(checkHistoryChat);
     }
   }, [historyChat]);
 
@@ -156,6 +170,20 @@ export default function ChatbotUI() {
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   }, [input]);
+
+  const [fileUrls, setFileUrls] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (files) {
+      const urls = Array.from(files).map((file) => URL.createObjectURL(file));
+      setFileUrls(urls);
+
+      return () => {
+        urls.forEach((url) => URL.revokeObjectURL(url));
+        setFileUrls([]);
+      };
+    }
+  }, [files]);
 
   return (
     <ChatbotLayout
@@ -206,32 +234,26 @@ export default function ChatbotUI() {
                     children={message.content}
                   />
                   <div>
-                    {message?.experimental_attachments
-                      ?.filter((attachment) =>
-                        attachment?.contentType?.startsWith("image/")
-                      )
-                      .map((attachment, index) => (
-                        <Image
-                          key={`${message.id}-${index}`}
-                          src={attachment.url}
-                          width={350}
-                          height={350}
-                          alt={attachment.name ?? `attachment-${index}`}
-                        />
-                      ))}
-                  </div>
-                  <div>
-                    {message?.experimental_attachments
-                      ?.filter(
-                        (attachment) =>
-                          !attachment?.contentType?.startsWith("image/")
-                      )
-                      .map((attachment, index) => (
-                        <div className="flex items-center gap-1 w-max p-2 rounded-lg">
-                          <File key={index} />
-                          <p key={index}>{attachment.name}</p>
+                    {message?.experimental_attachments?.map(
+                      (attachment, index) => (
+                        <div key={`${message.id}-${index}`}>
+                          {attachment?.contentType?.startsWith("image/") ? (
+                            <Image
+                              key={`${message.id}-${index}`}
+                              src={attachment.url}
+                              width={350}
+                              height={350}
+                              alt={attachment.name ?? `attachment-${index}`}
+                            />
+                          ) : (
+                            <div className="flex items-center gap-1 w-max p-2 rounded-lg">
+                              <File width={15} key={index} />
+                              <p key={index}>{attachment.name}</p>
+                            </div>
+                          )}
                         </div>
-                      ))}
+                      )
+                    )}
                   </div>
                 </div>
               </div>
@@ -241,28 +263,23 @@ export default function ChatbotUI() {
         <div ref={dummy}></div>
       </ScrollArea>
       <div>
-        {files ? (
-          Array.from(files).map((file, index) => (
-            <div key={index} style={{ marginBottom: "10px" }}>
-              {file.type.startsWith("image/") ? (
-                <Image
-                  key={`${index}`}
-                  src={URL.createObjectURL(file)}
-                  width={250}
-                  height={250}
-                  alt={file.name ?? `attachment-${index}`}
-                />
-              ) : (
-                <div className="flex items-center gap-1 border-2 w-max p-2 rounded-lg">
-                  <File />
-                  <p>{file.name}</p>
-                </div>
-              )}
-            </div>
-          ))
-        ) : (
-          <></>
-        )}
+        {fileUrls.map((url, index) => (
+          <div key={index} style={{ marginBottom: "10px" }}>
+            {files?.[index]?.type.startsWith("image/") ? (
+              <Image
+                src={url}
+                width={250}
+                height={250}
+                alt={files[index].name ?? `attachment-${index}`}
+              />
+            ) : (
+              <div className="flex items-center gap-1 border-2 w-max p-2 rounded-lg">
+                <File />
+                <p>{files?.[index].name}</p>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
       <TextInputChat
         audioBlob={audioBlob}
@@ -274,42 +291,9 @@ export default function ChatbotUI() {
         setAudioUrl={setAudioUrl}
         isAudio
         fileInputRef={fileInputRef}
-        setFiles={setFiles}
+        setFiles={(e: any) => setFiles(e)}
+        model={model}
       />
-      {/* <div className="flex md:flex-row flex-col items-end">
-        {audioUrl == null ? (
-          <Textarea
-            ref={textareaRef}
-            className="flex-1 mr-0 mb-2 md:mb-0 md:mr-2 min-h-[30px]"
-            placeholder="Type your message..."
-            value={input}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-          />
-        ) : (
-          <>
-            {audioUrl && (
-              <audio controls src={audioUrl} className="w-full h-9">
-                Your browser does not support the audio element.
-              </audio>
-            )}
-          </>
-        )}
-
-        <div className="flex flex-col md:flex-row gap-2 w-full md:w-max">
-          <div className="w-full md:w-max">
-            <AudioRecorder
-              onAudioRecorded={setAudioUrl}
-              blobAudio={setAudioBlob}
-              isBlob={audioBlob}
-            />
-          </div>
-          <Button onClick={handleSendMessage} className="w-full md:w-max">
-            <SendIcon className="w-4 h-4 mr-2" />
-            Send
-          </Button>
-        </div>
-      </div> */}
     </ChatbotLayout>
   );
 }

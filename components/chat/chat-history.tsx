@@ -107,8 +107,8 @@ const ChatHistory: React.FC<Props> = ({ historyChat, activeSession }) => {
                       className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setDeleteSessionId(data.sessionId); // Set the session ID to delete
-                        setIsOpen(true); // Open the alert dialog
+                        setDeleteSessionId(data.sessionId);
+                        setIsOpen(true);
                       }}
                     >
                       <Trash2 className="text-gray-400 hover:text-red-600 cursor-pointer ml-2" />

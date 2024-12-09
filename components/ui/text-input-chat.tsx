@@ -16,6 +16,7 @@ const TextInputChat: FC<ITextInputChat> = ({
   isAudio = false,
   fileInputRef,
   setFiles,
+  model,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
@@ -31,10 +32,6 @@ const TextInputChat: FC<ITextInputChat> = ({
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage(e);
-      setFiles(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
     }
   };
 
@@ -84,15 +81,21 @@ const TextInputChat: FC<ITextInputChat> = ({
           id="file-upload"
           className="hidden"
           onChange={(e) => {
+            e.preventDefault()
             handleFileChange(e);
           }}
           multiple
           ref={fileInputRef}
+          accept={
+            model === "gpt-4o"
+              ? "image/jpeg, image/jpg, image/png"
+              : "image/jpeg, image/jpg, image/png, application/pdf"
+          }
         />
         {audioUrl == null ? (
           <Textarea
             ref={textareaRef}
-            className="flex-1 mr-0 mb-2 md:mb-0 md:mr-2 min-h-[30px]"
+            className="flex-1 mr-0 mb-2 md:mb-0 md:mr-2 min-h-[30px] overflow-hidden"
             placeholder="Type your message..."
             value={input}
             onChange={handleInputChange}
@@ -121,10 +124,6 @@ const TextInputChat: FC<ITextInputChat> = ({
           <Button
             onClick={(e) => {
               handleSendMessage(e);
-              setFiles(null);
-              if (fileInputRef.current) {
-                fileInputRef.current.value = "";
-              }
             }}
             className="w-full md:w-max"
           >
@@ -148,6 +147,7 @@ interface ITextInputChat {
   isAudio?: boolean;
   setFiles?: any;
   fileInputRef?: any;
+  model?: string;
 }
 
 export default TextInputChat;
