@@ -22,7 +22,7 @@ const ChatbotLayout: React.FC<ChatbotLayoutProps> = ({
     if (typeof window !== "undefined") {
       localStorage.removeItem("userID");
       localStorage.removeItem("userEmail");
-      router.push("/login");
+      router.push("/");
     }
   };
 
